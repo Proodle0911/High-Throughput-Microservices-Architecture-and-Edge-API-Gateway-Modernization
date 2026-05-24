@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # Edge Gateway: Envoy Proxy
+  gateway:
+    image: envoyproxy/envoy:v1.30-latest
+    container_name: edge-gateway
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "8080:8080" # External HTTP/JSON
+      - "9090:9090" # Admin Interface
+      - "50051:50051" # gRPC
+    networks:
+      - internal-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+
+  # Event Backbone: Redpanda (Kafka compatible)
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v23.3.13
+    container_name: event-backbone
+    command:
+      - redpanda start
+      - --smp 1
+      - --memory 1G
+      - --overprovisioned
+      - --node-id 0
+      - --check=false
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:19092
+      - --pandaproxy-addr 0.0.0.0:8082
+      - --advertise-pandaproxy-addr localhost:8082
+    ports:
+      - "19092:19092"
+      - "8082:8082"
+    networks:
+      - internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redpanda Topic Provisioner
+  redpanda-setup:
+    image: docker.redpanda.com/redpandadata/redpanda:v23.3.13
+    container_name: event-backbone-setup
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - internal-net
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: "rpk topic create payment-events --brokers redpanda:9092"
+
+  # Primary Storage: PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: primary-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: portfolio_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d portfolio_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Distributed Tracing: Jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: jaeger-ui
+    ports:
+      - "16686:16686" # UI
+      - "4317:4317"   # OTLP gRPC
+    networks:
+      - internal-net
+
+  # Distributed Cache: Redis
+  redis:
+    image: redis:7-alpine
+    container_name: shared-cache
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    networks:
+      - internal-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+networks:
+  internal-net:
+    driver: bridge
+
+volumes:
+  pgdata:

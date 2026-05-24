@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package payment.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/pranav/portfolio-arch/proto/payment/v1;paymentv1";
+
+// PaymentIngressService handles initial high-volume ingestion
+service PaymentIngressService {
+  // ProcessPayment accepts a payment request, validates it, and ensures idempotency
+  rpc ProcessPayment(ProcessPaymentRequest) returns (ProcessPaymentResponse);
+}
+
+// LedgerService manages the source of truth for all transactions
+service LedgerService {
+  // GetTransactionStatus retrieves the current state of a ledger entry
+  rpc GetTransactionStatus(GetTransactionStatusRequest) returns (GetTransactionStatusResponse);
+}
+
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_PENDING = 1;
+  PAYMENT_STATUS_VALIDATED = 2;
+  PAYMENT_STATUS_FAILED = 3;
+  PAYMENT_STATUS_SETTLED = 4;
+}
+
+message ProcessPaymentRequest {
+  string idempotency_key = 1; // Required: Client-generated unique key
+  string account_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string destination_account = 5;
+  google.protobuf.Timestamp request_time = 6;
+}
+
+message ProcessPaymentResponse {
+  string transaction_id = 1;
+  PaymentStatus status = 2;
+  string message = 3;
+}
+
+message GetTransactionStatusRequest {
+  string transaction_id = 1;
+}
+
+message GetTransactionStatusResponse {
+  string transaction_id = 1;
+  PaymentStatus status = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
