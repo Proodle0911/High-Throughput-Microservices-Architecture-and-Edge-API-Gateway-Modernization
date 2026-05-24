@@ -14,6 +14,9 @@ This system is designed to handle massive spikes in transaction volume while mai
 
 ## Tech Stack
 
+<img width="1536" height="1024" alt="github1" src="https://github.com/user-attachments/assets/af75e943-ddfb-4290-988f-78a305210508" />
+
+
 | Component | Technology | Role |
 | :--- | :--- | :--- |
 | **Language** | Go (1.22+) | Core Service Logic |
