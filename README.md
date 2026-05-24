@@ -2,7 +2,7 @@
 
 A senior-level portfolio project demonstrating a modern, event-driven microservices architecture designed for high-volume payment ingestion and distributed ledger consistency.
 
-## 🚀 Architectural Overview
+## Architectural Overview
 
 This system is designed to handle massive spikes in transaction volume while maintaining strict ACID compliance and data integrity.
 
@@ -12,7 +12,7 @@ This system is designed to handle massive spikes in transaction volume while mai
 - **Ledger Service (Go):** Asynchronous worker that consumes transaction events and settles them into a **PostgreSQL** database using atomic transactions.
 - **Observability:** Full-stack distributed tracing with **OpenTelemetry** and **Jaeger**.
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Component | Technology | Role |
 | :--- | :--- | :--- |
@@ -25,7 +25,7 @@ This system is designed to handle massive spikes in transaction volume while mai
 | **Tracing** | OpenTelemetry / Jaeger | Distributed Observability |
 | **Orchestration** | Docker Compose | Local Development Environment |
 
-## 🏗 Key Engineering Patterns
+## Key Engineering Patterns
 
 1.  **Idempotency Key Pattern:** Prevents "double-charging" by caching client-generated keys in Redis before processing.
 2.  **Transactional Outbox Logic:** Ensures that every validated payment is guaranteed to be persisted in the ledger via Kafka durability.
@@ -35,7 +35,7 @@ This system is designed to handle massive spikes in transaction volume while mai
 
 ---
 
-## 🚦 How to Run the Project
+## How to Run the Project
 
 ### Prerequisites
 - [Go 1.22+](https://go.dev/dl/)
@@ -75,7 +75,7 @@ go run benchmarks/load_benchmark.go -n 5000 -c 100
 
 ---
 
-## 📈 Benchmarking Stats (Local Environment)
+## Benchmarking Stats (Local Environment)
 - **Total Requests:** 5,000
 - **Concurrency:** 100 Workers
 - **Success Rate:** 99.98%
@@ -84,5 +84,3 @@ go run benchmarks/load_benchmark.go -n 5000 -c 100
 
 ---
 
-## 👨‍💻 Author
-Built as a demonstration of Senior Software Engineering and Distributed Systems architecture.
