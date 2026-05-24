@@ -1,7 +1,5 @@
 # High-Throughput Financial Transaction System
 
-A senior-level portfolio project demonstrating a modern, event-driven microservices architecture designed for high-volume payment ingestion and distributed ledger consistency.
-
 ## Architectural Overview
 
 This system is designed to handle massive spikes in transaction volume while maintaining strict ACID compliance and data integrity.
